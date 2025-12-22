@@ -1,5 +1,10 @@
 import discord
 import random
+import os
+TOKEN = os.getenv("DISCORD_TOKEN")
+if not TOKEN:
+    raise RuntimeError("DISCORD_TOKEN is missing")
+client.run(TOKEN)
 intents = discord.Intents.default()
 intents.message_content = True
 class MyClient(discord.Client):
@@ -19,3 +24,4 @@ async def on_message(message):
 
 
 client.run("DISCORD_TOKEN")
+
