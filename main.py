@@ -29,7 +29,7 @@ async def on_message(message):
         )
 
     #random roll (1 / 999 chance) to send some bullshit
-    if random.randint(1, 3) == 2:
+    if random.randint(1, 100) == 2:
         now = datetime.datetime.utcnow()
         # check weekly cooldown
         if (
@@ -44,6 +44,7 @@ async def on_message(message):
             "https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg"
         )
 client.run(TOKEN)
+
 
 
 
