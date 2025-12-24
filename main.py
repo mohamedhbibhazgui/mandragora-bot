@@ -36,7 +36,7 @@ async def on_message(message):
             last_random_send is None
             or now - last_random_send >= datetime.timedelta(days=7)
         ):
-            await message.channel.send("BORN TO CAST VICTORIA IS A FUCK 鬼神 Kill Em All 1091 I am rock cat410,757,864,530 DEAD VICTORIANS")
+            await message.channel.send("BORN TO CAST - VICTORIA IS A FUCK 鬼神 Kill Em All 1091 I am rock cat 410,757,864,530 DEAD VICTORIANS")
             last_random_send = now
     #another command requested by newspaper
     if user_message == "hatto":
@@ -44,4 +44,5 @@ async def on_message(message):
             "https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg"
         )
 client.run(TOKEN)
+
 
