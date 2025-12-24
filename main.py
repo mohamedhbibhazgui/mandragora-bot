@@ -20,8 +20,10 @@ async def on_message(message):
         await message.channel.send("https://images-ext-1.discordapp.net/external/cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/https/i.imgur.com/exNU6Rf.mp4")
     if (random.randint(1,999)==2):
         await message.channel.send("https://media.discordapp.net/attachments/1346809772070141952/1354376217410670698/SPOILER_picmix.com_12527279.gif?ex=6949ae65&is=69485ce5&hm=bb3a94baa8c36ddb9db012cb721b06321c136909fd6609e95c2e9ca1be168d5c&=&width=620&height=620")
-
+    if user_message.lower()=="hatto":
+        await messsage.channel.send("https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg?ex=694d2e31&is=694bdcb1&hm=e72d287fed489d49cd6850104a90d7524e8e5c1126fea155c3c562d3a1ce6cfc&=&format=webp&width=281&height=281"
 client.run(TOKEN)
+
 
 
 
