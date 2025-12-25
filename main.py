@@ -37,15 +37,6 @@ async def dm(
     user: discord.User,
     message: str
 ):
-    # ✅ PUT THE PERMISSION CHECK HERE (FIRST)
-    if not interaction.user.guild_permissions.administrator:
-        await interaction.response.send_message(
-            "❌ You don't have permission to use this command.",
-            ephemeral=True
-        )
-        return
-
-    # ---- rest of the command runs ONLY if admin ----
     try:
         await user.send(message)
         await interaction.response.send_message(
@@ -99,4 +90,5 @@ async def on_message(message):
         )
 
 client.run(TOKEN)
+
 
