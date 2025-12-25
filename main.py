@@ -17,15 +17,12 @@ class MyClient(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
-        # sync slash commands globally
         await self.tree.sync()
 
     async def on_ready(self):
         print(f"Logged in as {self.user}")
 
 client = MyClient()
-
-# ---------------- SLASH COMMAND ----------------
 
 @client.tree.command(name="dm", description="Send a DM to a user")
 @app_commands.describe(
@@ -54,9 +51,6 @@ async def dm(
             ephemeral=True
         )
 
-
-# ---------------- MESSAGE EVENTS ----------------
-
 last_random_send = None
 
 @client.event
@@ -68,7 +62,7 @@ async def on_message(message):
 
     user_message = message.content.lower()
 
-    if user_message == 'victorian cuisine':
+    if "victorian cuisine" in user_message:
         await message.channel.send(
             "https://images-ext-1.discordapp.net/external/cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/https/i.imgur.com/exNU6Rf.mp4"
         )
@@ -84,11 +78,9 @@ async def on_message(message):
             )
             last_random_send = now
 
-    if user_message == "hatto":
+    if "hatto" in user_message:
         await message.channel.send(
             "https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg"
         )
 
 client.run(TOKEN)
-
-
