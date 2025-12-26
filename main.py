@@ -78,20 +78,15 @@ async def on_message(message):
             )
             last_random_send = now
 
-    if "hatto" in user_message:
-        index = user_message.find("hatto")
-        if index > 0 and user_message[index - 1] != " ":
-            return
-        if not(user_message == "hatto"):
-            return
-        if (user_message[index+len("hatto")+1]!=" ") and ((index+len("hatto"))==len(user_message)):
-            return
+    if "hatto" in message.content.lower().split():
         await message.channel.send(
             "https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg"
         )
 
 
+
 client.run(TOKEN)
+
 
 
 
