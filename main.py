@@ -3,7 +3,6 @@ import random
 import os
 import datetime
 from discord import app_commands
-
 TOKEN = os.getenv("DISCORD_TOKEN")
 if not TOKEN:
     raise RuntimeError("DISCORD_TOKEN is missing")
@@ -15,7 +14,7 @@ class MyClient(discord.Client):
     def __init__(self):
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
-
+        self.dm_blocked_users = set()
     async def setup_hook(self):
         await self.tree.sync()
 
@@ -23,7 +22,6 @@ class MyClient(discord.Client):
         print(f"Logged in as {self.user}")
 
 client = MyClient()
-
 @client.tree.command(name="bless", description="Send a blessing GIF via DM")
 @app_commands.describe(
     user="User to bless"
@@ -32,24 +30,30 @@ async def bless(
     interaction: discord.Interaction,
     user: discord.User
 ):
-    blessing_gif = (
+    placeholder_gif = (
         "https://tenor.com/view/"
         "montgomery-swizzenbocher-iii-gif-15095346273009658011"
     )
     blesser = interaction.user
+    if user.id in client.dm_blocked_users:
+        await interaction.response.send_message(
+            "This user has disabled blessing DMs.",
+            ephemeral=True
+        )
+        return
     try:
         await user.send(
             f"✨ You have been blessed by **{blesser.display_name}** ✨\n"
-            f"{blessing_gif}"
-        )
-        await interaction.response.send_message(
-            f"✅ Blessing sent to {user.mention}",
-            ephemeral=True
+            f"{placeholder_gif}"
         )
 
+        await interaction.response.send_message(
+            f"Blessing sent to {user.mention}",
+            ephemeral=True
+        )
     except discord.Forbidden:
         await interaction.response.send_message(
-            "I can't DM this user (DMs disabled).",
+            "I can't DM this user (DMs disabled by Discord).",
             ephemeral=True
         )
 
@@ -58,24 +62,41 @@ async def bless(
             "Failed to send blessing.",
             ephemeral=True
         )
-last_random_send = None
+@client.tree.command(
+    name="blockbless",
+    description="Prevent the bot from DMing you blessings"
+)
+async def blockbless(interaction: discord.Interaction):
+    client.dm_blocked_users.add(interaction.user.id)
 
+    await interaction.response.send_message(
+        "The bot will no longer DM you blessings.",
+        ephemeral=True
+    )
+@client.tree.command(
+    name="allowbless",
+    description="Allow the bot to DM you blessings again"
+)
+async def allowbless(interaction: discord.Interaction):
+    client.dm_blocked_users.discard(interaction.user.id)
+
+    await interaction.response.send_message(
+        "The bot can DM you blessings again.",
+        ephemeral=True
+    )
+last_random_send = None
 @client.event
 async def on_message(message):
     global last_random_send
-
     if message.author == client.user:
         return
-
     user_message = message.content.lower()
-
     if "victorian cuisine" in user_message:
         await message.channel.send(
             "https://images-ext-1.discordapp.net/external/"
             "cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/"
             "https/i.imgur.com/exNU6Rf.mp4"
         )
-
     if random.randint(1, 100) == 2:
         now = datetime.datetime.utcnow()
         if (
@@ -87,11 +108,9 @@ async def on_message(message):
                 "I am rock cat 410,757,864,530 DEAD VICTORIANS"
             )
             last_random_send = now
-
     if "hatto" in message.content.lower().split():
         await message.channel.send(
             "https://media.discordapp.net/attachments/"
             "1432125742396735532/1453363990511091762/hatto.jpg"
         )
-
 client.run(TOKEN)
