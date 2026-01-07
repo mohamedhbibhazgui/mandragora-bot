@@ -23,14 +23,43 @@ class MyClient(discord.Client):
         print(f"Logged in as {self.user}")
 
 client = MyClient()
-@client.tree.command(name="bless", description="Send a blessing GIF")
-async def bless(interaction: discord.Interaction):
-    placeholder_gif = "https://media.tenor.com/placeholder.gif"
 
-    await interaction.response.send_message(
-        f"https://tenor.com/view/montgomery-swizzenbocher-iii-gif-15095346273009658011"
+@client.tree.command(name="bless", description="Send a blessing GIF via DM")
+@app_commands.describe(
+    user="User to bless"
+)
+async def bless(
+    interaction: discord.Interaction,
+    user: discord.User
+):
+    blessing_gif = (
+        "https://tenor.com/view/"
+        "montgomery-swizzenbocher-iii-gif-15095346273009658011"
     )
+    blesser = interaction.user
+    try:
+        await user.send(
+            f"✨ You have been blessed by **{blesser.display_name}** ✨\n"
+            f"{blessing_gif}"
+        )
+        await interaction.response.send_message(
+            f"✅ Blessing sent to {user.mention}",
+            ephemeral=True
+        )
+
+    except discord.Forbidden:
+        await interaction.response.send_message(
+            "I can't DM this user (DMs disabled).",
+            ephemeral=True
+        )
+
+    except Exception:
+        await interaction.response.send_message(
+            "Failed to send blessing.",
+            ephemeral=True
+        )
 last_random_send = None
+
 @client.event
 async def on_message(message):
     global last_random_send
@@ -42,7 +71,9 @@ async def on_message(message):
 
     if "victorian cuisine" in user_message:
         await message.channel.send(
-            "https://images-ext-1.discordapp.net/external/cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/https/i.imgur.com/exNU6Rf.mp4"
+            "https://images-ext-1.discordapp.net/external/"
+            "cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/"
+            "https/i.imgur.com/exNU6Rf.mp4"
         )
 
     if random.randint(1, 100) == 2:
@@ -52,13 +83,15 @@ async def on_message(message):
             or now - last_random_send >= datetime.timedelta(days=7)
         ):
             await message.channel.send(
-                "BORN TO CAST - VICTORIA IS A FUCK 鬼神 Kill Em All 1091 I am rock cat 410,757,864,530 DEAD VICTORIANS"
+                "BORN TO CAST - VICTORIA IS A FUCK 鬼神 Kill Em All 1091 "
+                "I am rock cat 410,757,864,530 DEAD VICTORIANS"
             )
             last_random_send = now
 
     if "hatto" in message.content.lower().split():
         await message.channel.send(
-            "https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg"
+            "https://media.discordapp.net/attachments/"
+            "1432125742396735532/1453363990511091762/hatto.jpg"
         )
 
 client.run(TOKEN)
