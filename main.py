@@ -23,36 +23,14 @@ class MyClient(discord.Client):
         print(f"Logged in as {self.user}")
 
 client = MyClient()
+@client.tree.command(name="bless", description="Send a blessing GIF")
+async def bless(interaction: discord.Interaction):
+    placeholder_gif = "https://media.tenor.com/placeholder.gif"
 
-@client.tree.command(name="dm", description="Send a DM to a user")
-@app_commands.describe(
-    user="User to DM",
-    message="Message to send"
-)
-async def dm(
-    interaction: discord.Interaction,
-    user: discord.User,
-    message: str
-):
-    try:
-        await user.send(message)
-        await interaction.response.send_message(
-            f"✅ DM sent to {user.mention}",
-            ephemeral=True
-        )
-    except discord.Forbidden:
-        await interaction.response.send_message(
-            "I can't DM this user (DMs disabled).",
-            ephemeral=True
-        )
-    except Exception:
-        await interaction.response.send_message(
-            "Failed to send DM.",
-            ephemeral=True
-        )
-
+    await interaction.response.send_message(
+        f"https://tenor.com/view/montgomery-swizzenbocher-iii-gif-15095346273009658011"
+    )
 last_random_send = None
-
 @client.event
 async def on_message(message):
     global last_random_send
@@ -83,11 +61,4 @@ async def on_message(message):
             "https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg"
         )
 
-
-
 client.run(TOKEN)
-
-
-
-
-
