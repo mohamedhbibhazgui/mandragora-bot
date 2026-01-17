@@ -194,7 +194,7 @@ async def on_message(message):
     # ─────────────────────────────
     # 1/75 mob goon response (any user)
     # ─────────────────────────────
-    if random.randint(1, 10) == 1:
+    if random.randint(1, 75) == 1:
         await message.channel.send(
             random.choice(GOON_MESSAGES)
         )
@@ -230,4 +230,5 @@ async def on_message(message):
         )
 
 client.run(TOKEN)
+
 
