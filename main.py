@@ -10,6 +10,7 @@ if not TOKEN:
     raise RuntimeError("DISCORD_TOKEN is missing")
 
 DATA_FILE = "dm_blocked.json"
+STONE_FILE = "stone_leaderboard.json"
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -42,14 +43,14 @@ GOON_MESSAGES = [
 # Allowed color roles
 # ─────────────────────────────
 ALLOWED_ROLE_IDS = {
-    1315105809658544209,  # teal
-    1395006533347180624,  # yellow/orange
-    1315090029982384169,  # green
-    1345758044499476501,  # grey
-    1385296517975375993,  # blue
-    1315091467127230534,  # purple
-    1315102680775135324,  # red
-    1238573370220740729,  # guides
+    1315105809658544209,
+    1395006533347180624,
+    1315090029982384169,
+    1345758044499476501,
+    1385296517975375993,
+    1315091467127230534,
+    1315102680775135324,
+    1238573370220740729,
 }
 
 # ─────────────────────────────
@@ -68,20 +69,29 @@ def save_blocked_users(blocked_users):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(list(blocked_users), f)
 
+def load_stone_data():
+    if not os.path.exists(STONE_FILE):
+        return {}
+    try:
+        with open(STONE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def save_stone_data(data):
+    with open(STONE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
 # ─────────────────────────────
-# Goon detection helper
+# Goon detection
 # ─────────────────────────────
 def contains_goon(text: str) -> bool:
     text = text.lower()
-
-    # Replace punctuation with spaces
     text = re.sub(r"[^\w\s]", " ", text)
 
-    # Direct "goon"
     if "goon" in text:
         return True
 
-    # Detect "go on" as adjacent words
     words = text.split()
     for i in range(len(words) - 1):
         if words[i] == "go" and words[i + 1] == "on":
@@ -94,6 +104,7 @@ class MyClient(discord.Client):
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
         self.dm_blocked_users = load_blocked_users()
+        self.stone_data = load_stone_data()
 
     async def setup_hook(self):
         await self.tree.sync()
@@ -105,103 +116,58 @@ class MyClient(discord.Client):
 client = MyClient()
 
 # ─────────────────────────────
-# /bless
+# /stone
 # ─────────────────────────────
-@client.tree.command(name="bless", description="Send a blessing GIF via DM")
-@app_commands.describe(user="User to bless")
-async def bless(interaction: discord.Interaction, user: discord.User):
-    gif = (
-        "https://tenor.com/view/"
-        "mandragora-mandragora-arknights-gif-12377204109633212970"
-    )
+@client.tree.command(name="stone", description="Attempt to stone another user")
+@app_commands.describe(user="User to stone")
+async def stone(interaction: discord.Interaction, user: discord.User):
+    brick_gif = "https://tenor.com/view/cat-throwing-brick-brick-cat-gif-9142560192559212520"
+    parry_gif = "https://tenor.com/view/ultrakill-funny-cat-cat-parry-explode-gif-12515622299668151985"
 
-    if user.id in client.dm_blocked_users:
+    stoner_id = str(interaction.user.id)
+    target_id = str(user.id)
+
+    if random.choice([True, False]):
+        # Brick hits
+        client.stone_data[target_id] = client.stone_data.get(target_id, 0) + 1
+        save_stone_data(client.stone_data)
+
         await interaction.response.send_message(
-            "This user has disabled blessing DMs.",
+            f"{interaction.user.mention} stones {user.mention} 🧱\n{brick_gif}"
+        )
+    else:
+        # Parried
+        client.stone_data[stoner_id] = client.stone_data.get(stoner_id, 0) + 1
+        save_stone_data(client.stone_data)
+
+        await interaction.response.send_message(
+            f"{interaction.user.mention} you got parried! 🛡️\n{parry_gif}"
+        )
+
+# ─────────────────────────────
+# /stoneboard
+# ─────────────────────────────
+@client.tree.command(name="stoneboard", description="View the stoning leaderboard")
+async def stoneboard(interaction: discord.Interaction):
+    if not client.stone_data:
+        await interaction.response.send_message(
+            "No one has been stoned yet.",
             ephemeral=True
         )
         return
 
-    try:
-        await user.send(
-            f"You have been blessed by {interaction.user.display_name}\n{gif}"
-        )
-        await interaction.response.send_message(
-            f"Blessing sent to {user.mention}",
-            ephemeral=True
-        )
-    except discord.Forbidden:
-        await interaction.response.send_message(
-            "I can't DM this user.",
-            ephemeral=True
-        )
-
-# ─────────────────────────────
-# /blockbless
-# ─────────────────────────────
-@client.tree.command(
-    name="blockbless",
-    description="Prevent the bot from DMing you blessings"
-)
-async def blockbless(interaction: discord.Interaction):
-    client.dm_blocked_users.add(interaction.user.id)
-    save_blocked_users(client.dm_blocked_users)
-
-    await interaction.response.send_message(
-        "The bot will no longer DM you blessings.",
-        ephemeral=True
+    sorted_board = sorted(
+        client.stone_data.items(),
+        key=lambda x: x[1],
+        reverse=True
     )
 
-# ─────────────────────────────
-# /allowbless
-# ─────────────────────────────
-@client.tree.command(
-    name="allowbless",
-    description="Allow the bot to DM you blessings again"
-)
-async def allowbless(interaction: discord.Interaction):
-    client.dm_blocked_users.discard(interaction.user.id)
-    save_blocked_users(client.dm_blocked_users)
+    lines = []
+    for i, (user_id, points) in enumerate(sorted_board[:10], start=1):
+        lines.append(f"**{i}.** <@{user_id}> — **{points}**")
 
     await interaction.response.send_message(
-        "The bot can DM you blessings again.",
-        ephemeral=True
-    )
-
-# ─────────────────────────────
-# /insult
-# ─────────────────────────────
-@client.tree.command(
-    name="insult",
-    description="Spread chaos between two colors"
-)
-@app_commands.describe(
-    source="Who said it",
-    target="Who is being insulted"
-)
-async def insult(
-    interaction: discord.Interaction,
-    source: discord.Role,
-    target: discord.Role
-):
-    if source.id == target.id:
-        await interaction.response.send_message(
-            "Source and target must be different roles.",
-            ephemeral=True
-        )
-        return
-
-    if source.id not in ALLOWED_ROLE_IDS or target.id not in ALLOWED_ROLE_IDS:
-        await interaction.response.send_message(
-            "You can only use color roles for this command.",
-            ephemeral=True
-        )
-        return
-
-    insult_word = random.choice(INSULTS)
-
-    await interaction.response.send_message(
-        f"Hey **{target.name}**, **{source.name}** called you **{insult_word}**"
+        "🪨 **STONING LEADERBOARD** 🪨\n" + "\n".join(lines)
     )
 
 # ─────────────────────────────
@@ -212,39 +178,7 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    # ─────────────────────────────
-    # Goon trigger (every time)
-    # ─────────────────────────────
     if contains_goon(message.content):
         await message.channel.send(random.choice(GOON_MESSAGES))
 
-    TARGET_USER_ID = 644586863881093120
-    TARGET_USER_MENTION = f"<@{TARGET_USER_ID}>"
-
-    if message.author.id == TARGET_USER_ID:
-        if random.randint(1, 75) == 1:
-            await message.channel.send("Go white boy Go")
-
-    if random.randint(1, 300) == 1:
-        await message.channel.send(
-            f"{TARGET_USER_MENTION}\n"
-            "https://media.discordapp.net/attachments/"
-            "1346809772070141952/1354376217410670698/"
-            "SPOILER_picmix.com_12527279.gif"
-        )
-
-    msg = message.content.lower()
-
-    if "victorian cuisine" in msg:
-        await message.channel.send(
-            "https://images-ext-1.discordapp.net/external/"
-            "cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/"
-            "https/i.imgur.com/exNU6Rf.mp4"
-        )
-
-    if "hatto" in msg.split():
-        await message.channel.send(
-            "https://media.discordapp.net/attachments/"
-            "1432125742396735532/1453363990511091762/hatto.jpg"
-        )
 client.run(TOKEN)
