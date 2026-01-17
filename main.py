@@ -46,15 +46,16 @@ class MyClient(discord.Client):
 client = MyClient()
 
 # ─────────────────────────────
-# /bless command (DMs a user)
+# /bless command
 # ─────────────────────────────
 @client.tree.command(name="bless", description="Send a blessing GIF via DM")
 @app_commands.describe(user="User to bless")
 async def bless(interaction: discord.Interaction, user: discord.User):
     placeholder_gif = (
         "https://tenor.com/view/"
-        "https://tenor.com/view/mandragora-mandragora-arknights-gif-12377204109633212970"
+        "mandragora-mandragora-arknights-gif-12377204109633212970"
     )
+
     blesser = interaction.user
 
     if user.id in client.dm_blocked_users:
@@ -66,8 +67,7 @@ async def bless(interaction: discord.Interaction, user: discord.User):
 
     try:
         await user.send(
-            f"You have been blessed by {blesser.display_name}\n"
-            f"{placeholder_gif}"
+            f"You have been blessed by {blesser.display_name}\n{placeholder_gif}"
         )
 
         await interaction.response.send_message(
@@ -120,17 +120,39 @@ async def allowbless(interaction: discord.Interaction):
     )
 
 # ─────────────────────────────
-# Message listener logic
+# Message listener
 # ─────────────────────────────
-last_random_send = None
-
 @client.event
 async def on_message(message):
-    global last_random_send
-
     if message.author == client.user:
         return
 
+    TARGET_USER_ID = 644586863881093120
+    TARGET_USER_MENTION = f"<@{TARGET_USER_ID}>"
+
+    # ─────────────────────────────
+    # 1/75 chance (specific user)
+    # ─────────────────────────────
+    if message.author.id == TARGET_USER_ID:
+        if random.randint(1, 75) == 1:
+            await message.channel.send(
+                "Go white boy Go"
+            )
+
+    # ─────────────────────────────
+    # 1/300 chance (any user, tags target user)
+    # ─────────────────────────────
+    if random.randint(1, 300) == 1:
+        await message.channel.send(
+            f"{TARGET_USER_MENTION}\n"
+            "https://media.discordapp.net/attachments/"
+            "1346809772070141952/1354376217410670698/"
+            "SPOILER_picmix.com_12527279.gif"
+        )
+
+    # ─────────────────────────────
+    # Keyword triggers
+    # ─────────────────────────────
     user_message = message.content.lower()
 
     if "victorian cuisine" in user_message:
@@ -140,19 +162,7 @@ async def on_message(message):
             "https/i.imgur.com/exNU6Rf.mp4"
         )
 
-    if random.randint(1, 100) == 2:
-        now = datetime.datetime.utcnow()
-        if (
-            last_random_send is None
-            or now - last_random_send >= datetime.timedelta(days=7)
-        ):
-            await message.channel.send(
-                "BORN TO CAST - VICTORIA IS A FUCK 鬼神 Kill Em All 1091 "
-                "I am rock cat 410,757,864,530 DEAD VICTORIANS"
-            )
-            last_random_send = now
-
-    if "hatto" in message.content.lower().split():
+    if "hatto" in user_message.split():
         await message.channel.send(
             "https://media.discordapp.net/attachments/"
             "1432125742396735532/1453363990511091762/hatto.jpg"
