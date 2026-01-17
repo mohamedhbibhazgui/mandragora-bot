@@ -27,6 +27,20 @@ INSULTS = [
 ]
 
 # ─────────────────────────────
+# Allowed color roles
+# ─────────────────────────────
+ALLOWED_ROLE_IDS = {
+    1315105809658544209,  # teal
+    1395006533347180624,  # yellow/orange
+    1315090029982384169,  # green
+    1345758044499476501,  # grey
+    1385296517975375993,  # blue
+    1315091467127230534,  # purple
+    1315102680775135324,  # red
+    1238573370220740729,  # guides
+}
+
+# ─────────────────────────────
 # Persistence helpers
 # ─────────────────────────────
 def load_blocked_users():
@@ -58,12 +72,12 @@ class MyClient(discord.Client):
 client = MyClient()
 
 # ─────────────────────────────
-# /bless command
+# /bless
 # ─────────────────────────────
 @client.tree.command(name="bless", description="Send a blessing GIF via DM")
 @app_commands.describe(user="User to bless")
 async def bless(interaction: discord.Interaction, user: discord.User):
-    placeholder_gif = (
+    gif = (
         "https://tenor.com/view/"
         "mandragora-mandragora-arknights-gif-12377204109633212970"
     )
@@ -77,7 +91,7 @@ async def bless(interaction: discord.Interaction, user: discord.User):
 
     try:
         await user.send(
-            f"You have been blessed by {interaction.user.display_name}\n{placeholder_gif}"
+            f"You have been blessed by {interaction.user.display_name}\n{gif}"
         )
         await interaction.response.send_message(
             f"Blessing sent to {user.mention}",
@@ -122,7 +136,7 @@ async def allowbless(interaction: discord.Interaction):
     )
 
 # ─────────────────────────────
-# /insult (GLOBAL CHAOS COMMAND)
+# /insult
 # ─────────────────────────────
 @client.tree.command(
     name="insult",
@@ -144,6 +158,13 @@ async def insult(
         )
         return
 
+    if source.id not in ALLOWED_ROLE_IDS or target.id not in ALLOWED_ROLE_IDS:
+        await interaction.response.send_message(
+            "You can only use color roles for this command.",
+            ephemeral=True
+        )
+        return
+
     insult_word = random.choice(INSULTS)
 
     await interaction.response.send_message(
@@ -158,32 +179,39 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    msg_lower = message.content.lower()
+
+    # Prefix if "goon" is present
+    prefix = "ay baws " if "goon" in msg_lower else ""
+
     TARGET_USER_ID = 644586863881093120
     TARGET_USER_MENTION = f"<@{TARGET_USER_ID}>"
 
+    # 1/75 chance (specific user)
     if message.author.id == TARGET_USER_ID:
         if random.randint(1, 75) == 1:
-            await message.channel.send("Go white boy Go")
+            await message.channel.send(f"{prefix}Go white boy Go")
 
+    # 1/300 chance (global)
     if random.randint(1, 300) == 1:
         await message.channel.send(
-            f"{TARGET_USER_MENTION}\n"
+            f"{prefix}{TARGET_USER_MENTION}\n"
             "https://media.discordapp.net/attachments/"
             "1346809772070141952/1354376217410670698/"
             "SPOILER_picmix.com_12527279.gif"
         )
 
-    msg = message.content.lower()
-
-    if "victorian cuisine" in msg:
+    if "victorian cuisine" in msg_lower:
         await message.channel.send(
+            f"{prefix}"
             "https://images-ext-1.discordapp.net/external/"
             "cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/"
             "https/i.imgur.com/exNU6Rf.mp4"
         )
 
-    if "hatto" in msg.split():
+    if "hatto" in msg_lower.split():
         await message.channel.send(
+            f"{prefix}"
             "https://media.discordapp.net/attachments/"
             "1432125742396735532/1453363990511091762/hatto.jpg"
         )
