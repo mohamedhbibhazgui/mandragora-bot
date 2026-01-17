@@ -15,6 +15,53 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 # ─────────────────────────────
+# Role ↔ Channel mapping
+# ─────────────────────────────
+ROLE_CHANNELS = {
+    "teal": {
+        "channel_id": 1346808567130230804,
+        "role_id": 1315105809658544209,
+    },
+    "yellow_orange": {
+        "channel_id": 1395007020163268669,
+        "role_id": 1395006533347180624,
+    },
+    "green": {
+        "channel_id": 1346809772070141952,
+        "role_id": 1315090029982384169,
+    },
+    "grey": {
+        "channel_id": 1346806389359775846,
+        "role_id": 1345758044499476501,
+    },
+    "blue": {
+        "channel_id": 1346807075153645681,
+        "role_id": 1385296517975375993,
+    },
+    "purple": {
+        "channel_id": 1346806767228555345,
+        "role_id": 1315091467127230534,
+    },
+    "red": {
+        "channel_id": 1346806929065771072,
+        "role_id": 1315102680775135324,
+    },
+    "guides": {
+        "channel_id": 1368902634437738617,
+        "role_id": 1238573370220740729,
+    },
+}
+
+INSULTS = [
+    "stinky",
+    "cringe",
+    "lame",
+    "embarrassing",
+    "unwashed",
+    "terminally online",
+]
+
+# ─────────────────────────────
 # Persistence helpers
 # ─────────────────────────────
 def load_blocked_users():
@@ -46,17 +93,15 @@ class MyClient(discord.Client):
 client = MyClient()
 
 # ─────────────────────────────
-# /bless command
+# /bless
 # ─────────────────────────────
 @client.tree.command(name="bless", description="Send a blessing GIF via DM")
 @app_commands.describe(user="User to bless")
 async def bless(interaction: discord.Interaction, user: discord.User):
-    placeholder_gif = (
+    gif = (
         "https://tenor.com/view/"
         "mandragora-mandragora-arknights-gif-12377204109633212970"
     )
-
-    blesser = interaction.user
 
     if user.id in client.dm_blocked_users:
         await interaction.response.send_message(
@@ -67,60 +112,98 @@ async def bless(interaction: discord.Interaction, user: discord.User):
 
     try:
         await user.send(
-            f"You have been blessed by {blesser.display_name}\n{placeholder_gif}"
+            f"You have been blessed by {interaction.user.display_name}\n{gif}"
         )
-
         await interaction.response.send_message(
             f"Blessing sent to {user.mention}",
             ephemeral=True
         )
-
     except discord.Forbidden:
         await interaction.response.send_message(
-            "I can't DM this user (DMs disabled by Discord).",
-            ephemeral=True
-        )
-
-    except Exception:
-        await interaction.response.send_message(
-            "Failed to send blessing.",
+            "I can't DM this user.",
             ephemeral=True
         )
 
 # ─────────────────────────────
-# /blockbless command
+# /blockbless
 # ─────────────────────────────
-@client.tree.command(
-    name="blockbless",
-    description="Prevent the bot from DMing you blessings"
-)
+@client.tree.command(name="blockbless", description="Prevent blessing DMs")
 async def blockbless(interaction: discord.Interaction):
     client.dm_blocked_users.add(interaction.user.id)
     save_blocked_users(client.dm_blocked_users)
-
     await interaction.response.send_message(
-        "The bot will no longer DM you blessings.",
+        "Blessing DMs disabled.",
         ephemeral=True
     )
 
 # ─────────────────────────────
-# /allowbless command
+# /allowbless
 # ─────────────────────────────
-@client.tree.command(
-    name="allowbless",
-    description="Allow the bot to DM you blessings again"
-)
+@client.tree.command(name="allowbless", description="Allow blessing DMs")
 async def allowbless(interaction: discord.Interaction):
     client.dm_blocked_users.discard(interaction.user.id)
     save_blocked_users(client.dm_blocked_users)
-
     await interaction.response.send_message(
-        "The bot can DM you blessings again.",
+        "Blessing DMs enabled.",
         ephemeral=True
     )
 
 # ─────────────────────────────
-# Message listener
+# /insult (ROLE-CHAOS COMMAND)
+# ─────────────────────────────
+@client.tree.command(
+    name="insult",
+    description="Spread chaos between two colors"
+)
+@app_commands.describe(
+    source="Who said it",
+    target="Who is being insulted"
+)
+async def insult(
+    interaction: discord.Interaction,
+    source: discord.Role,
+    target: discord.Role
+):
+    # Must be used in a mapped channel
+    channel_data = next(
+        (v for v in ROLE_CHANNELS.values()
+         if v["channel_id"] == interaction.channel_id),
+        None
+    )
+
+    if channel_data is None:
+        await interaction.response.send_message(
+            "You can't use this command in this channel.",
+            ephemeral=True
+        )
+        return
+
+    # User must have the role for this channel
+    if not any(
+        role.id == channel_data["role_id"]
+        for role in interaction.user.roles
+    ):
+        await interaction.response.send_message(
+            "You don't belong to this color.",
+            ephemeral=True
+        )
+        return
+
+    if source.id == target.id:
+        await interaction.response.send_message(
+            "Source and target must be different roles.",
+            ephemeral=True
+        )
+        return
+
+    insult_word = random.choice(INSULTS)
+
+    await interaction.response.send_message(
+        f"Hey **{target.name}**, **{source.name}** called you **{insult_word}**"
+    )
+
+# ─────────────────────────────
+# Message listener (unchanged)
 # ─────────────────────────────
 @client.event
 async def on_message(message):
@@ -130,18 +213,10 @@ async def on_message(message):
     TARGET_USER_ID = 644586863881093120
     TARGET_USER_MENTION = f"<@{TARGET_USER_ID}>"
 
-    # ─────────────────────────────
-    # 1/75 chance (specific user)
-    # ─────────────────────────────
     if message.author.id == TARGET_USER_ID:
         if random.randint(1, 75) == 1:
-            await message.channel.send(
-                "Go white boy Go"
-            )
+            await message.channel.send("Go white boy Go")
 
-    # ─────────────────────────────
-    # 1/300 chance (any user, tags target user)
-    # ─────────────────────────────
     if random.randint(1, 300) == 1:
         await message.channel.send(
             f"{TARGET_USER_MENTION}\n"
@@ -150,24 +225,19 @@ async def on_message(message):
             "SPOILER_picmix.com_12527279.gif"
         )
 
-    # ─────────────────────────────
-    # Keyword triggers
-    # ─────────────────────────────
-    user_message = message.content.lower()
+    msg = message.content.lower()
 
-    if "victorian cuisine" in user_message:
+    if "victorian cuisine" in msg:
         await message.channel.send(
             "https://images-ext-1.discordapp.net/external/"
             "cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/"
             "https/i.imgur.com/exNU6Rf.mp4"
         )
 
-    if "hatto" in user_message.split():
+    if "hatto" in msg.split():
         await message.channel.send(
             "https://media.discordapp.net/attachments/"
             "1432125742396735532/1453363990511091762/hatto.jpg"
         )
 
 client.run(TOKEN)
-
-
