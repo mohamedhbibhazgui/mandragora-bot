@@ -27,6 +27,18 @@ INSULTS = [
 ]
 
 # ─────────────────────────────
+# Mob goon messages
+# ─────────────────────────────
+GOON_MESSAGES = [
+    "good idea baws",
+    "aye boss",
+    "sounds right, baws",
+    "whatever you say, baws",
+    "you got it, boss",
+    "yeah yeah, makes sense baws",
+]
+
+# ─────────────────────────────
 # Allowed color roles
 # ─────────────────────────────
 ALLOWED_ROLE_IDS = {
@@ -179,39 +191,40 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    msg_lower = message.content.lower()
-
-    # Prefix if "goon" is present
-    prefix = "ay baws " if "goon" in msg_lower else ""
+    # ─────────────────────────────
+    # 1/75 mob goon response (any user)
+    # ─────────────────────────────
+    if random.randint(1, 75) == 1:
+        await message.channel.send(
+            random.choice(GOON_MESSAGES)
+        )
 
     TARGET_USER_ID = 644586863881093120
     TARGET_USER_MENTION = f"<@{TARGET_USER_ID}>"
 
-    # 1/75 chance (specific user)
     if message.author.id == TARGET_USER_ID:
         if random.randint(1, 75) == 1:
-            await message.channel.send(f"{prefix}Go white boy Go")
+            await message.channel.send("Go white boy Go")
 
-    # 1/300 chance (global)
     if random.randint(1, 300) == 1:
         await message.channel.send(
-            f"{prefix}{TARGET_USER_MENTION}\n"
+            f"{TARGET_USER_MENTION}\n"
             "https://media.discordapp.net/attachments/"
             "1346809772070141952/1354376217410670698/"
             "SPOILER_picmix.com_12527279.gif"
         )
 
-    if "victorian cuisine" in msg_lower:
+    msg = message.content.lower()
+
+    if "victorian cuisine" in msg:
         await message.channel.send(
-            f"{prefix}"
             "https://images-ext-1.discordapp.net/external/"
             "cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/"
             "https/i.imgur.com/exNU6Rf.mp4"
         )
 
-    if "hatto" in msg_lower.split():
+    if "hatto" in msg.split():
         await message.channel.send(
-            f"{prefix}"
             "https://media.discordapp.net/attachments/"
             "1432125742396735532/1453363990511091762/hatto.jpg"
         )
