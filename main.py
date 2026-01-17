@@ -134,7 +134,7 @@ async def on_message(message):
     # 1/75 chance (specific user)
     # ─────────────────────────────
     if message.author.id == TARGET_USER_ID:
-        if random.randint(1, 3) == 1:
+        if random.randint(1, 75) == 1:
             await message.channel.send(
                 "Go white boy Go"
             )
@@ -169,4 +169,5 @@ async def on_message(message):
         )
 
 client.run(TOKEN)
+
 
