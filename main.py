@@ -1,8 +1,8 @@
 import discord
 import random
 import os
-import datetime
 import json
+import re
 from discord import app_commands
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -67,6 +67,27 @@ def load_blocked_users():
 def save_blocked_users(blocked_users):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(list(blocked_users), f)
+
+# ─────────────────────────────
+# Goon detection helper
+# ─────────────────────────────
+def contains_goon(text: str) -> bool:
+    text = text.lower()
+
+    # Replace punctuation with spaces
+    text = re.sub(r"[^\w\s]", " ", text)
+
+    # Direct "goon"
+    if "goon" in text:
+        return True
+
+    # Detect "go on" as adjacent words
+    words = text.split()
+    for i in range(len(words) - 1):
+        if words[i] == "go" and words[i + 1] == "on":
+            return True
+
+    return False
 
 class MyClient(discord.Client):
     def __init__(self):
@@ -192,12 +213,10 @@ async def on_message(message):
         return
 
     # ─────────────────────────────
-    # 1/75 mob goon response (any user)
+    # Goon trigger (every time)
     # ─────────────────────────────
-    if random.randint(1, 75) == 1:
-        await message.channel.send(
-            random.choice(GOON_MESSAGES)
-        )
+    if contains_goon(message.content):
+        await message.channel.send(random.choice(GOON_MESSAGES))
 
     TARGET_USER_ID = 644586863881093120
     TARGET_USER_MENTION = f"<@{TARGET_USER_ID}>"
@@ -228,7 +247,4 @@ async def on_message(message):
             "https://media.discordapp.net/attachments/"
             "1432125742396735532/1453363990511091762/hatto.jpg"
         )
-
 client.run(TOKEN)
-
-
