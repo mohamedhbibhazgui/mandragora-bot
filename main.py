@@ -135,7 +135,8 @@ async def stone(interaction: discord.Interaction, user: discord.User):
         save_stone_data(client.stone_data)
 
         await interaction.response.send_message(
-            f"{interaction.user.mention} stones {user.mention} 🧱\n{brick_gif}"
+            f"{interaction.user.name} stones {user.name}",
+            allowed_mentions=discord.AllowedMentions.none()
         )
     else:
         client.stone_data[stoner_id] = client.stone_data.get(stoner_id, 0) + 1
@@ -167,7 +168,7 @@ async def stoneboard(interaction: discord.Interaction):
     for i, (user_id, points) in enumerate(sorted_board[:10], start=1):
         try:
             user = await client.fetch_user(int(user_id))
-            name = f"{user.name}#{user.discriminator}" if user.discriminator != "0" else user.name
+            name = user.name if user.discriminator != "0" else user.name
         except Exception:
             name = f"Unknown User ({user_id})"
 
@@ -227,3 +228,4 @@ async def on_message(message):
         )
 
 client.run(TOKEN)
+
