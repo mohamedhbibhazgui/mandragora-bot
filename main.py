@@ -3,6 +3,7 @@ import random
 import os
 import json
 import re
+import datetime
 from discord import app_commands
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -38,7 +39,9 @@ GOON_MESSAGES = [
     "you got it, boss",
     "yeah yeah, makes sense baws",
 ]
+
 last_random_send = None
+
 # ─────────────────────────────
 # Allowed color roles
 # ─────────────────────────────
@@ -128,7 +131,6 @@ async def stone(interaction: discord.Interaction, user: discord.User):
     target_id = str(user.id)
 
     if random.choice([True, False]):
-        # Brick hits
         client.stone_data[target_id] = client.stone_data.get(target_id, 0) + 1
         save_stone_data(client.stone_data)
 
@@ -136,7 +138,6 @@ async def stone(interaction: discord.Interaction, user: discord.User):
             f"{interaction.user.mention} stones {user.mention} 🧱\n{brick_gif}"
         )
     else:
-        # Parried
         client.stone_data[stoner_id] = client.stone_data.get(stoner_id, 0) + 1
         save_stone_data(client.stone_data)
 
@@ -175,32 +176,48 @@ async def stoneboard(interaction: discord.Interaction):
 # ─────────────────────────────
 @client.event
 async def on_message(message):
+    global last_random_send
+
     if message.author == client.user:
         return
 
     if contains_goon(message.content):
         await message.channel.send(random.choice(GOON_MESSAGES))
+
     user_message = message.content.lower()
 
-    #fuckass command requested by newspaper
+    # fuckass command requested by newspaper
     if user_message == 'victorian cuisine':
         await message.channel.send(
             "https://images-ext-1.discordapp.net/external/cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/https/i.imgur.com/exNU6Rf.mp4"
         )
 
-    #random roll (1 / 999 chance) to send some bullshit
+    # random roll (1 / 999 chance) to send some bullshit (weekly cooldown)
     if random.randint(1, 999) == 2:
         now = datetime.datetime.utcnow()
-        # check weekly cooldown
         if (
             last_random_send is None
             or now - last_random_send >= datetime.timedelta(days=7)
         ):
-            await message.channel.send("BORN TO CAST VICTORIA IS A FUCK 鬼神 Kill Em All 1091 I am rock cat410,757,864,530 DEAD VICTORIANS")
+            await message.channel.send(
+                "BORN TO CAST VICTORIA IS A FUCK 鬼神 Kill Em All 1091 "
+                "I am rock cat410,757,864,530 DEAD VICTORIANS"
+            )
             last_random_send = now
-    #another command requested by newspaper
+
+    # NEW: 1 / 1000 chance to post gif + tag user
+    if random.randint(1, 1000) == 1:
+        await message.channel.send(
+            "<@644586863881093120>\n"
+            "https://media.discordapp.net/attachments/1346809772070141952/1354376217410670698/"
+            "SPOILER_picmix.com_12527279.gif?ex=696defa5&is=696c9e25&hm="
+            "3ab21403e0ea38f6f5bd1227a646a312b8da8968a7e929f3f0aa8dad20705668&=&width=620&height=620"
+        )
+
+    # another command requested by newspaper
     if user_message == "hatto":
         await message.channel.send(
             "https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg"
         )
+
 client.run(TOKEN)
