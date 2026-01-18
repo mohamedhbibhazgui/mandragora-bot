@@ -165,7 +165,13 @@ async def stoneboard(interaction: discord.Interaction):
 
     lines = []
     for i, (user_id, points) in enumerate(sorted_board[:10], start=1):
-        lines.append(f"**{i}.** <@{user_id}> — **{points}**")
+        try:
+            user = await client.fetch_user(int(user_id))
+            name = f"{user.name}#{user.discriminator}" if user.discriminator != "0" else user.name
+        except Exception:
+            name = f"Unknown User ({user_id})"
+
+        lines.append(f"**{i}.** {name} — **{points}**")
 
     await interaction.response.send_message(
         "🪨 **STONING LEADERBOARD** 🪨\n" + "\n".join(lines)
@@ -181,7 +187,6 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    # NEW: 1 / 100 chance to reply to specific user
     if message.author.id == 644586863881093120:
         if random.randint(1, 100) == 1:
             await message.channel.send("go white boy go")
