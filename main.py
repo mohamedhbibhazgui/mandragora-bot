@@ -15,36 +15,22 @@ STONE_FILE = "stone_leaderboard.json"
 
 intents = discord.Intents.default()
 intents.message_content = True
-
-# ─────────────────────────────
-# Insults
-# ─────────────────────────────
 INSULTS = [
     "stinky",
     "cringe",
     "lame",
     "embarrassing",
     "unwashed",
-    "terminally online",
-]
-
-# ─────────────────────────────
-# Mob goon messages
-# ─────────────────────────────
+    "terminally online",]
 GOON_MESSAGES = [
     "good idea baws",
     "aye boss",
     "sounds right, baws",
     "whatever you say, baws",
     "you got it, boss",
-    "yeah yeah, makes sense baws",
-]
+    "yeah yeah, makes sense baws",]
 
 last_random_send = None
-
-# ─────────────────────────────
-# Allowed color roles
-# ─────────────────────────────
 ALLOWED_ROLE_IDS = {
     1315105809658544209,
     1395006533347180624,
@@ -55,10 +41,6 @@ ALLOWED_ROLE_IDS = {
     1315102680775135324,
     1238573370220740729,
 }
-
-# ─────────────────────────────
-# Persistence helpers
-# ─────────────────────────────
 def load_blocked_users():
     if not os.path.exists(DATA_FILE):
         return set()
@@ -67,11 +49,9 @@ def load_blocked_users():
             return set(json.load(f))
     except Exception:
         return set()
-
 def save_blocked_users(blocked_users):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(list(blocked_users), f)
-
 def load_stone_data():
     if not os.path.exists(STONE_FILE):
         return {}
@@ -80,14 +60,9 @@ def load_stone_data():
             return json.load(f)
     except Exception:
         return {}
-
 def save_stone_data(data):
     with open(STONE_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f)
-
-# ─────────────────────────────
-# Goon detection
-# ─────────────────────────────
 def contains_goon(text: str) -> bool:
     text = text.lower()
     text = re.sub(r"[^\w\s]", " ", text)
@@ -117,10 +92,7 @@ class MyClient(discord.Client):
         print(f"Loaded {len(self.dm_blocked_users)} blocked users")
 
 client = MyClient()
-
-# ─────────────────────────────
 # /stone
-# ─────────────────────────────
 @client.tree.command(name="stone", description="Attempt to stone another user")
 @app_commands.describe(user="User to stone")
 async def stone(interaction: discord.Interaction, user: discord.User):
@@ -145,10 +117,7 @@ async def stone(interaction: discord.Interaction, user: discord.User):
         await interaction.response.send_message(
             f"{interaction.user.mention} you got parried! 🛡️\n{parry_gif}"
         )
-
-# ─────────────────────────────
 # /stoneboard
-# ─────────────────────────────
 @client.tree.command(name="stoneboard", description="View the stoning leaderboard")
 async def stoneboard(interaction: discord.Interaction):
     if not client.stone_data:
@@ -177,10 +146,7 @@ async def stoneboard(interaction: discord.Interaction):
     await interaction.response.send_message(
         "🪨 **STONING LEADERBOARD** 🪨\n" + "\n".join(lines)
     )
-
-# ─────────────────────────────
 # Message listener
-# ─────────────────────────────
 @client.event
 async def on_message(message):
     global last_random_send
@@ -228,4 +194,5 @@ async def on_message(message):
         )
 
 client.run(TOKEN)
+
 
