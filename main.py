@@ -181,18 +181,21 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    # NEW: 1 / 100 chance to reply to specific user
+    if message.author.id == 644586863881093120:
+        if random.randint(1, 100) == 1:
+            await message.channel.send("go white boy go")
+
     if contains_goon(message.content):
         await message.channel.send(random.choice(GOON_MESSAGES))
 
     user_message = message.content.lower()
 
-    # fuckass command requested by newspaper
     if user_message == 'victorian cuisine':
         await message.channel.send(
             "https://images-ext-1.discordapp.net/external/cgUQPEYpzmj7jm5D1R1lwVw_OHlHeaVU4XdY1W8E8T8/https/i.imgur.com/exNU6Rf.mp4"
         )
 
-    # random roll (1 / 999 chance) to send some bullshit (weekly cooldown)
     if random.randint(1, 999) == 2:
         now = datetime.datetime.utcnow()
         if (
@@ -205,7 +208,6 @@ async def on_message(message):
             )
             last_random_send = now
 
-    # NEW: 1 / 1000 chance to post gif + tag user
     if random.randint(1, 1000) == 1:
         await message.channel.send(
             "<@644586863881093120>\n"
@@ -214,7 +216,6 @@ async def on_message(message):
             "3ab21403e0ea38f6f5bd1227a646a312b8da8968a7e929f3f0aa8dad20705668&=&width=620&height=620"
         )
 
-    # another command requested by newspaper
     if user_message == "hatto":
         await message.channel.send(
             "https://media.discordapp.net/attachments/1432125742396735532/1453363990511091762/hatto.jpg"
