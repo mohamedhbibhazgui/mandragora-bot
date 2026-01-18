@@ -107,7 +107,7 @@ async def stone(interaction: discord.Interaction, user: discord.User):
         save_stone_data(client.stone_data)
 
         await interaction.response.send_message(
-            f"{interaction.user.name} stones {user.name}\n {brick.gif}",
+            f"{interaction.user.name} stones {user.name}\n {brick_gif}",
             allowed_mentions=discord.AllowedMentions.none()
         )
     else:
@@ -194,6 +194,7 @@ async def on_message(message):
         )
 
 client.run(TOKEN)
+
 
 
 
