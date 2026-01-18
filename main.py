@@ -107,7 +107,7 @@ async def stone(interaction: discord.Interaction, user: discord.User):
         save_stone_data(client.stone_data)
 
         await interaction.response.send_message(
-            f"{interaction.user.name} stones {user.name}",
+            f"{interaction.user.name} stones {user.name}\n {brick.gif}",
             allowed_mentions=discord.AllowedMentions.none()
         )
     else:
@@ -115,7 +115,7 @@ async def stone(interaction: discord.Interaction, user: discord.User):
         save_stone_data(client.stone_data)
 
         await interaction.response.send_message(
-            f"{interaction.user.mention} you got parried! 🛡️\n{parry_gif}"
+            f"{interaction.user.mention} you got parried!\n{parry_gif}"
         )
 # /stoneboard
 @client.tree.command(name="stoneboard", description="View the stoning leaderboard")
@@ -194,5 +194,6 @@ async def on_message(message):
         )
 
 client.run(TOKEN)
+
 
 
