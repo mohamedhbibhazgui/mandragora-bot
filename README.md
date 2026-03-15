@@ -1,5 +1,1 @@
-A discord bot created to roleplay as mandragora from the game arknights.
-currently, the Bot can:
--respond to certain keywords if found in a message-
--run some minigames between members using commands-
--store the result of said minigames in a json file-
+Discord bot with slash commands for stoning friends (with parry mechanics + leaderboard), composite hug images using Pillow, cross-role insults delivered to enemy channels, and assorted unhinged passive behaviours. Features a weekly auto-purge and responds when mentioned. Built with discord.py.
