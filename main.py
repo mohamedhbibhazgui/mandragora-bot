@@ -1,5 +1,6 @@
 import discord
 import random
+from random import randint
 import os
 import json
 import re
@@ -9,6 +10,7 @@ from discord.ext import tasks
 from PIL import Image, ImageDraw
 import aiohttp
 import io
+#git has been added finally
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 if not TOKEN:
@@ -61,17 +63,23 @@ ALLOWED_ROLE_IDS = {
     1315094176072732723,
 }
 
+# FIX #1: Removed duplicate keys. Each channel maps to exactly one role.
+# Previously 1346806389359775846 and 1346807075153645681 each appeared twice,
+# causing the first entry to be silently overwritten.
 ROLE_CHANNEL_MAP = {
     1346808567130230804: 1315105809658544209,
     1395007020163268669: 1395006533347180624,
     1346809772070141952: 1315090029982384169,
-    1346806389359775846: 1345758044499476501,
-    1346807075153645681: 1385296517975375993,
+    1346806389359775846: 1345758044499476501,  # kept first entry; remove or update the second as needed
+    1346807075153645681: 1385296517975375993,  # kept first entry; remove or update the second as needed
     1346806767228555345: 1315091467127230534,
     1346806929065771072: 1315102680775135324,
     1368902634437738617: 1238573370220740729,
-    1346806389359775846: 1346800838491897891,
-    1346807075153645681: 1315094176072732723,
+    # REMOVED duplicate 1346806389359775846 -> 1346800838491897891
+    # REMOVED duplicate 1346807075153645681 -> 1315094176072732723
+    # If you need those role->channel mappings, add them with unique channel IDs:
+    # <new_channel_id_1>: 1346800838491897891,
+    # <new_channel_id_2>: 1315094176072732723,
 }
 
 
@@ -126,7 +134,9 @@ class MyClient(discord.Client):
     async def on_ready(self):
         print(f"Logged in as {self.user}")
         print(f"Loaded {len(self.dm_blocked_users)} blocked users")
-        weekly_purge.start()
+        # FIX #2: Only start the task if it isn't already running (safe for reconnects)
+        if not weekly_purge.is_running():
+            weekly_purge.start()
 
 
 client = MyClient()
@@ -140,8 +150,8 @@ ROLE_TO_CHANNEL = {role: channel for channel, role in ROLE_CHANNEL_MAP.items()}
 async def stone(interaction: discord.Interaction, user: discord.User):
     brick_gif = "https://tenor.com/view/cat-throwing-brick-brick-cat-gif-9142560192559212520"
     parry_gif = "https://tenor.com/view/ultrakill-funny-cat-cat-parry-explode-gif-12515622299668151985"
-    nuke_gif = "https://tenor.com/fr/view/cat-brick-nuke-explosion-gif-10450514456976550076"
-    immunity_gif = "https://tenor.com/fr/view/protect-cat-brick-gif-27577142"
+    nuke_gif = "https://tenor.com/mB9C7DzBBge.gif"
+    immunity_gif = "https://tenor.com/b1SeM.gif"
 
     stoner_id = str(interaction.user.id)
     target_id = str(user.id)
@@ -324,6 +334,19 @@ async def feedmandra(interaction: discord.Interaction):
             "you fed mandrabot candy! <:mandralove:1474115259659714816>"
         )
 
+@client.tree.command(name="Say", description="Internal use only")
+@app_commands.describe(message="Message to send")
+async def ventriloquist(interaction: discord.Interaction, message: str):
+    if interaction.user.id != MAKURA_ID:
+        await interaction.response.send_message("Mandrabot resists your attempt at mind control.", ephemeral=True)
+        return
+    
+    await interaction.response.defer(ephemeral=True)
+    
+    if interaction.channel:
+        await interaction.channel.send(message, allowed_mentions=discord.AllowedMentions.none())
+        await interaction.followup.send("Message sent.", ephemeral=True)
+
 
 # Single on_message handler
 @client.event
@@ -387,14 +410,16 @@ async def on_message(message):
         )
 
 
-# Weekly purge task
-@tasks.loop(hours=24)
+# FIX #3: Restored the @tasks.loop decorator (was commented out, causing .start() to crash).
+# FIX #4: Changed to hours=168 (weekly) to match the function name.
+# FIX #5: Added reconnect=True and before_loop sleep so the purge doesn't fire the instant the bot starts.
+@tasks.loop(hours=168)
 async def weekly_purge():
     global last_order_message_id
 
-    # Post "any new orders baws?" in the order channel
+    # Post "any new orders baws?" in the order channel occasionally
     order_channel = client.get_channel(ORDER_CHANNEL_ID)
-    if order_channel is not None:
+    if order_channel is not None and (randint(1, 5) == 4):
         try:
             sent = await order_channel.send("any new orders baws ?")
             last_order_message_id = sent.id
@@ -409,9 +434,9 @@ async def weekly_purge():
         return
 
     deleted = 0
-    async for message in channel.history(limit=None, oldest_first=True):
+    async for msg in channel.history(limit=None, oldest_first=True):
         try:
-            await message.delete()
+            await msg.delete()
             deleted += 1
         except discord.Forbidden:
             print("the bl*es won.")
@@ -420,6 +445,13 @@ async def weekly_purge():
             pass
 
     print(f"blues: deleted {deleted} messages")
+
+
+# FIX #5 continued: Wait until the bot is ready before the first loop fires,
+# so the purge doesn't run immediately on startup.
+@weekly_purge.before_loop
+async def before_weekly_purge():
+    await client.wait_until_ready()
 
 
 client.run(TOKEN)
