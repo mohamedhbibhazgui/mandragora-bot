@@ -334,7 +334,7 @@ async def feedmandra(interaction: discord.Interaction):
             "you fed mandrabot candy! <:mandralove:1474115259659714816>"
         )
 
-@client.tree.command(name="Say", description="Internal use only")
+@client.tree.command(name="say", description="Internal use only")
 @app_commands.describe(message="Message to send")
 async def ventriloquist(interaction: discord.Interaction, message: str):
     if interaction.user.id != MAKURA_ID:
