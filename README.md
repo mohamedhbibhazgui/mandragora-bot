@@ -1,1 +1,1 @@
-Discord bot with slash commands: composite hug images using Pillow, cross-role insults delivered to enemy channels, and assorted unhinged passive behaviours. Features a weekly auto-purge and responds when mentioned. Built with discord.py.
+# mandrabot
